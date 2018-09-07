@@ -57,7 +57,11 @@ function buildEnumType (context, attributeName, enumValues) {
 }
 
 function mapType (context, attributeDefinition, attributeName, buildingInputType) {
+  if (Array.isArray(attributeDefinition.type))
+    attributeDefinition.type = attributeDefinition.type[0]
+
   if (attributeDefinition.type === 'array') {
+
     const elementType = mapType(context, attributeDefinition.items, attributeName, buildingInputType);
     if (elementType === DROP_ATTRIBUTE_MARKER) {
       return DROP_ATTRIBUTE_MARKER;
@@ -67,9 +71,9 @@ function mapType (context, attributeDefinition, attributeName, buildingInputType
 
   const enumValues = attributeDefinition.enum;
   if (enumValues) {
-    if (attributeDefinition.type !== 'string') {
+   /* if (attributeDefinition.type !== 'string') {
       throw new Error(`The attribute ${attributeName} not supported because only conversion of string based enumertions are implemented`);
-    }
+    } */
 
     const existingEnum = context.enumTypes.get(attributeName);
     if (existingEnum) {
@@ -77,11 +81,11 @@ function mapType (context, attributeDefinition, attributeName, buildingInputType
     }
     return buildEnumType(context, attributeName, enumValues);
   }
-
   const typeReference = attributeDefinition.$ref;
   if (typeReference) {
     const typeMap = buildingInputType ? context.inputs : context.types;
     const referencedType = typeMap.get(typeReference);
+
     if (!referencedType) {
       if (context.types.get(typeReference) instanceof GraphQLUnionType && buildingInputType) {
         return DROP_ATTRIBUTE_MARKER;
